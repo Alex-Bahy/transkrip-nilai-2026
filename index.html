@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transkrip Nilai Generator — SMK Negeri 1 Maluku Tengah</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --ink:#0d1117;--ink2:#374151;--mute:#94a3b8;--border:#e2e8f0;--surf:#f8fafc;--card:#ffffff;
+    --teal:#0e7490;--tealL:#06b6d4;--tealGlow:rgba(14,116,144,.12);--gold:#b45309;--goldL:#d97706;
+    --ok:#059669;--err:#dc2626;--rs:6px;--rm:12px;--rl:18px;--rx:26px;
+  }
+  body{font-family:'Space Grotesk',sans-serif;background:var(--surf);color:var(--ink);min-height:100vh;overflow-x:hidden}
+  .login-wrap{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--ink);transition:opacity .5s,visibility .5s}
+  .login-wrap.hidden{opacity:0;visibility:hidden;pointer-events:none}
+  .login-bg{position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 15% 20%,rgba(6,182,212,.08),transparent),radial-gradient(ellipse 50% 60% at 85% 80%,rgba(180,83,9,.06),transparent)}
+  .login-card{position:relative;background:rgba(255,255,255,.04);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:var(--rx);padding:3rem 2.5rem;width:90%;max-width:400px;text-align:center;animation:rise .7s cubic-bezier(.16,1,.3,1)}
+  @keyframes rise{from{opacity:0;transform:translateY(30px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .login-logo{width:88px;height:88px;object-fit:contain;margin-bottom:1.5rem;filter:drop-shadow(0 0 16px rgba(6,182,212,.3))}
+  .login-title{font-family:'Crimson Pro',serif;font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:.25rem}
+  .login-sub{color:rgba(255,255,255,.45);font-size:.85rem;margin-bottom:2rem}
+  .login-field{position:relative;margin-bottom:1.2rem}
+  .login-ico{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-size:1rem;color:var(--tealL)}
+  .login-inp{width:100%;padding:.85rem .9rem .85rem 2.6rem;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:var(--rm);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:all .25s}
+  .login-inp::placeholder{color:rgba(255,255,255,.3)}
+  .login-inp:focus{border-color:var(--tealL);box-shadow:0 0 0 3px rgba(6,182,212,.15);background:rgba(255,255,255,.1)}
+  .login-btn{width:100%;padding:.9rem;background:linear-gradient(135deg,var(--tealL),var(--teal));color:#fff;font-family:inherit;font-weight:700;font-size:.95rem;border:none;border-radius:var(--rm);cursor:pointer;transition:all .25s}
+  .login-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(6,182,212,.3)}
+  .login-err{color:#fca5a5;font-size:.82rem;margin-top:.8rem;display:none}
+  .login-err.show{display:block;animation:shake .35s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .app{opacity:0;transition:opacity .5s .2s}.app.visible{opacity:1}
+  .hero{background:var(--ink);padding:2rem 0 3rem;position:relative;overflow:hidden}
+  .hero::before{content:'';position:absolute;top:-40%;right:-15%;width:500px;height:500px;background:radial-gradient(circle,rgba(6,182,212,.1),transparent 70%);border-radius:50%}
+  .hero-inner{max-width:1200px;margin:0 auto;padding:0 1.5rem;position:relative;z-index:1;display:flex;align-items:center;gap:1.5rem}
+  .hero-logo{width:80px;height:80px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 16px rgba(6,182,212,.25))}
+  .hero h1{font-family:'Crimson Pro',serif;font-size:1.9rem;font-weight:700;color:#fff;margin-bottom:.2rem}
+  .hero p{color:rgba(255,255,255,.5);font-size:.9rem}
+  .hero-badge{display:inline-block;background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.3);color:var(--tealL);padding:.2rem .75rem;border-radius:20px;font-size:.75rem;font-weight:600;margin-top:.5rem}
+  .live-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(5,150,105,.15);border:1px solid rgba(5,150,105,.35);color:#34d399;padding:.2rem .75rem;border-radius:20px;font-size:.75rem;font-weight:600;margin-top:.5rem;margin-left:.4rem;transition:all .3s}
+  .live-badge.syncing{background:rgba(6,182,212,.15);border-color:rgba(6,182,212,.35);color:var(--tealL)}
+  .live-badge.error{background:rgba(220,38,38,.15);border-color:rgba(220,38,38,.35);color:#f87171}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:#34d399;flex-shrink:0;animation:pulse-dot 2s ease-in-out infinite}
+  .live-badge.syncing .live-dot{background:var(--tealL);animation:spin-dot .8s linear infinite}
+  .live-badge.error .live-dot{background:#f87171;animation:none}
+  @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+  @keyframes spin-dot{to{transform:rotate(360deg)}}
+  .update-bar{display:none;padding:.5rem 1.8rem;background:linear-gradient(90deg,rgba(5,150,105,.06),transparent);border-bottom:1px solid rgba(5,150,105,.15);font-size:.78rem;color:var(--ok);align-items:center;gap:.5rem}
+  .update-bar.show{display:flex}
+  .update-bar.changed{background:linear-gradient(90deg,rgba(6,182,212,.1),transparent);border-color:rgba(6,182,212,.2);color:var(--teal);animation:flashBar .6s ease}
+  @keyframes flashBar{0%{background:rgba(6,182,212,.25)}100%{background:linear-gradient(90deg,rgba(6,182,212,.1),transparent)}}
+  .update-countdown{margin-left:auto;color:var(--mute);font-size:.72rem}
+  .wrap{max-width:1200px;margin:-1.5rem auto 0;padding:0 1.5rem 4rem;position:relative;z-index:5}
+  .card{background:var(--card);border-radius:var(--rl);border:1px solid var(--border);box-shadow:0 4px 24px rgba(14,116,144,.07);margin-bottom:1.2rem}
+  .sel-wrap{padding:1.5rem 1.8rem}
+  .sel-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);margin-bottom:.6rem}
+  .sel-input{width:100%;padding:.85rem 1rem;border:2px solid var(--border);border-radius:var(--rm);font-family:inherit;font-size:.95rem;font-weight:500;color:var(--ink);background:var(--surf);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%230e7490' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .9rem center;cursor:pointer;outline:none;transition:all .2s}
+  .sel-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--tealGlow)}
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.9rem;margin-bottom:1.2rem}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:1.2rem 1.4rem}
+  .stat-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mute);margin-bottom:.4rem}
+  .stat-val{font-size:2rem;font-weight:700;color:var(--teal);line-height:1}
+  .stat-sub{font-size:.8rem;color:var(--ink2);margin-top:.3rem}
+  .table-head{padding:1.1rem 1.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.7rem}
+  .table-title{font-family:'Crimson Pro',serif;font-size:1.15rem;font-weight:600}
+  .table-count{background:var(--surf);border:1px solid var(--border);padding:.2rem .75rem;border-radius:20px;font-size:.78rem;font-weight:700;color:var(--teal)}
+  .tscroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse}
+  thead{background:linear-gradient(135deg,var(--teal) 0%,#0c6480 100%);position:sticky;top:0;z-index:1}
+  th{padding:.9rem 1rem;color:#fff;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:left;white-space:nowrap;border-right:1px solid rgba(255,255,255,.12)}
+  th:last-child{text-align:center;border-right:none}th:first-child{text-align:center}
+  thead tr{border-bottom:2px solid rgba(255,255,255,.25)}
+  tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+  tbody tr:hover{background:#f0f9ff}tbody tr:last-child{border-bottom:none}
+  td{padding:.75rem 1rem;font-size:.88rem;vertical-align:middle}td:last-child{text-align:center}
+  .row-no{font-weight:700;color:var(--mute);font-size:.78rem}
+  .row-name{font-weight:600}
+  .row-prodi{display:inline-block;padding:.2rem .6rem;border-radius:20px;font-size:.7rem;font-weight:700;background:var(--tealGlow);color:var(--teal)}
+  .sc-badge{display:inline-flex;align-items:center;gap:.25rem;padding:.25rem .6rem;border-radius:20px;font-size:.72rem;font-weight:700}
+  .sc-full{background:#d1fae5;color:#065f46}.sc-part{background:#fef3c7;color:#92400e}.sc-none{background:#fee2e2;color:#991b1b}
+  .row-actions{display:flex;gap:.35rem;justify-content:center;flex-wrap:nowrap}
+  .btn-prev{padding:.35rem .6rem;border-radius:var(--rs);background:linear-gradient(135deg,var(--tealL),var(--teal));color:#fff;border:none;cursor:pointer;font-size:.7rem;font-weight:700;font-family:inherit;white-space:nowrap;transition:all .2s}
+  .btn-prev:hover{transform:scale(1.04);box-shadow:0 2px 10px rgba(6,182,212,.3)}
+  .btn-print{padding:.35rem .6rem;border-radius:var(--rs);background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;cursor:pointer;font-size:.7rem;font-weight:700;font-family:inherit;white-space:nowrap;transition:all .2s}
+  .btn-print:hover{transform:scale(1.04);box-shadow:0 2px 10px rgba(16,185,129,.3)}
+  .btn-dl{padding:.35rem .6rem;border-radius:var(--rs);background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;cursor:pointer;font-size:.7rem;font-weight:700;font-family:inherit;white-space:nowrap;transition:all .2s}
+  .btn-dl:hover{transform:scale(1.04);box-shadow:0 2px 10px rgba(124,58,237,.3)}
+  .actions-bar{display:flex;justify-content:center;gap:.9rem;flex-wrap:wrap;padding:1.2rem 1.8rem;border-top:1px solid var(--border)}
+  .abtn{display:inline-flex;align-items:center;gap:.45rem;padding:.75rem 1.75rem;border-radius:var(--rm);font-family:inherit;font-weight:700;font-size:.88rem;border:none;cursor:pointer;transition:all .25s}
+  .abtn:hover{transform:translateY(-2px)}
+  .abtn-teal{background:linear-gradient(135deg,var(--tealL),var(--teal));color:#fff;box-shadow:0 3px 14px rgba(6,182,212,.25)}
+  .abtn-purple{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 3px 14px rgba(139,92,246,.25)}
+  .abtn-gold{background:linear-gradient(135deg,var(--goldL),var(--gold));color:#fff;box-shadow:0 3px 14px rgba(217,119,6,.25)}
+  .abtn-green{background:linear-gradient(135deg,#10b981,#059669);color:#fff;box-shadow:0 3px 14px rgba(16,185,129,.25)}
+  .row-cb{width:16px;height:16px;accent-color:var(--teal);cursor:pointer}
+  .select-all-row{padding:.75rem 1.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;font-size:.82rem;font-weight:600;color:var(--ink2)}
+  .filter-bar{padding:.8rem 1.8rem;border-bottom:1px solid var(--border);display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+  .filter-inp{flex:1;min-width:160px;padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:var(--rm);font-family:inherit;font-size:.85rem;outline:none;transition:all .2s}
+  .filter-inp:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--tealGlow)}
+  .empty{padding:3.5rem 2rem;text-align:center;color:var(--mute)}
+  .empty svg{width:56px;height:56px;opacity:.35;margin-bottom:.8rem}.empty p{font-size:.95rem;font-weight:500}
+  .spinner-wrap{display:none;justify-content:center;padding:2.5rem}.spinner-wrap.show{display:flex}
+  .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .65s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .progress-wrap{display:none;padding:1.5rem 1.8rem;border-top:1px solid var(--border);text-align:center}
+  .progress-wrap.show{display:block}
+  .progress-text{font-size:.85rem;font-weight:600;color:var(--ink2);margin-bottom:.7rem}
+  .progress-bar{height:8px;background:var(--surf);border-radius:8px;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--tealL),var(--teal));border-radius:8px;transition:width .35s}
+  .toast{position:fixed;top:1.2rem;left:50%;transform:translateX(-50%) translateY(-130%);background:var(--ink);color:#fff;padding:.9rem 1.8rem;border-radius:var(--rm);font-weight:600;font-size:.88rem;z-index:99999;transition:transform .35s cubic-bezier(.16,1,.3,1);box-shadow:0 8px 30px rgba(0,0,0,.25);white-space:nowrap;max-width:90vw;text-align:center}
+  .toast.show{transform:translateX(-50%) translateY(0)}.toast.ok{background:linear-gradient(135deg,var(--ok),#10b981)}.toast.err{background:linear-gradient(135deg,var(--err),#ef4444)}
+  .modal-overlay{position:fixed;inset:0;z-index:10000;background:rgba(13,17,23,.75);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .3s}
+  .modal-overlay.show{opacity:1;visibility:visible}
+  .modal{background:var(--card);border-radius:var(--rl);width:94%;max-width:820px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.35);animation:modalUp .4s cubic-bezier(.16,1,.3,1) both;position:relative}
+  @keyframes modalUp{from{opacity:0;transform:translateY(28px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .modal-head{padding:1.2rem 1.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:2;border-radius:var(--rl) var(--rl) 0 0}
+  .modal-head h3{font-family:'Crimson Pro',serif;font-size:1.2rem;font-weight:700}
+  .modal-close{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);background:var(--surf);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--ink2);transition:all .2s}
+  .modal-close:hover{background:var(--err);color:#fff;border-color:var(--err)}
+  .modal-body{padding:1.8rem}
+  .modal-foot{padding:.9rem 1.8rem 1.4rem;border-top:1px solid var(--border);display:flex;justify-content:center;gap:.8rem;flex-wrap:wrap}
+  .tn-doc{font-family:'Times New Roman',Times,serif;font-size:11px;line-height:1.4;color:#000;max-width:660px;margin:0 auto}
+  .tn-kop{display:flex;align-items:center;gap:12px;margin-bottom:3px}
+  .tn-kop-logo{width:60px;height:68px;object-fit:contain;flex-shrink:0}
+  .tn-kop-text{flex:1;text-align:center}
+  .tn-kop-text .gov{font-size:10px}.tn-kop-text .dinas{font-size:11px;font-weight:700}.tn-kop-text .school{font-size:14px;font-weight:700}.tn-kop-text .addr{font-size:9px}
+  .tn-divider{border:none;border-top:3px double #000;margin:5px 0 10px}
+  .tn-title{text-align:center;font-weight:700;font-size:13px;margin:8px 0 10px}
+  .tn-identity{margin:0 0 10px}.tn-identity table{border:none;border-collapse:collapse;width:100%}
+  .tn-identity td{padding:1.5px 4px;font-size:11px;vertical-align:top;text-align:left}
+  .tn-identity td:first-child{width:145px}.tn-identity td:nth-child(2){width:12px}
+  .tn-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:9.5px}
+  .tn-table th,.tn-table td{border:1px solid #000;padding:2px 4px;text-align:center;vertical-align:middle}
+  .tn-table th{font-weight:700;font-size:9.5px;background:#0e7490;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .tn-table .col-no{width:22px}.tn-table .col-mapel{text-align:left!important;min-width:0}
+  .tn-table .col-sem{width:30px}.tn-table .col-rata-rapor{width:32px}.tn-table .col-us{width:32px}
+  .tn-table .row-group td{font-weight:700;background:#e0f2f7;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .tn-table .row-group td:first-child{text-align:center}.tn-table .row-avg td{font-weight:700}
+  .tn-footer{margin-top:12px;display:flex;justify-content:flex-end;font-size:11px}
+  .tn-footer-box{text-align:center}
+  .back-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);font-family:inherit;font-size:.8rem;font-weight:600;border-radius:var(--rm);text-decoration:none;transition:all .2s;margin-bottom:1.2rem;backdrop-filter:blur(8px)}
+  .back-btn:hover{background:rgba(6,182,212,.12);border-color:rgba(6,182,212,.3);color:#fff;transform:translateX(-3px)}
+  footer{text-align:center;padding:2rem;color:var(--mute);font-size:.8rem}
+  @media(max-width:768px){.hero h1{font-size:1.45rem}.stats-row{grid-template-columns:1fr 1fr}th{font-size:.68rem;padding:.7rem}td{font-size:.8rem;padding:.65rem .7rem}.modal{width:98%}}
+  @media(max-width:480px){.stats-row{grid-template-columns:1fr}.hero h1{font-size:1.2rem}}
+  ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--teal);border-radius:10px}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>📋 Preview Transkrip Nilai</h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot">
+      <button class="abtn abtn-green" onclick="printFromModal()">🖨️ Print / Cetak</button>
+      <button class="abtn abtn-teal" onclick="pdfFromModal()">📄 Download PDF</button>
+      <button class="abtn" style="background:var(--surf);color:var(--ink2);border:2px solid var(--border);" onclick="closeModal()">✖ Tutup</button>
+    </div>
+  </div>
+</div>
+<div class="login-wrap" id="loginWrap">
+  <div class="login-bg"></div>
+  <div class="login-card">
+    <img src="https://iili.io/qd9rF1V.png" alt="Logo" class="login-logo" onerror="this.style.display='none'">
+    <h2 class="login-title">SMK Negeri 1 Maluku Tengah</h2>
+    <p class="login-sub">Generator Transkrip Nilai — Kelas XII 2025/2026</p>
+    <div class="login-field">
+      <span class="login-ico">🔒</span>
+      <input type="password" id="loginPw" class="login-inp" placeholder="Masukkan password..." onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Masuk</button>
+    <p class="login-err" id="loginErr">Password salah. Coba lagi.</p>
+  </div>
+</div>
+<div class="app" id="app">
+  <header class="hero">
+    <div class="hero-inner">
+      <img src="https://iili.io/qd9rF1V.png" alt="Logo" class="hero-logo" onerror="this.style.display='none'">
+      <div>
+        <h1>SMK Negeri 1 Maluku Tengah</h1>
+        <p>Generator Transkrip Nilai — Tahun Ajaran 2025/2026</p>
+        <span class="hero-badge">📋 Transkrip Generator v2 (US Data Terintegrasi)</span>
+        <span class="live-badge" id="liveBadge">
+          <span class="live-dot"></span>
+          <span id="liveText">Menghubungkan...</span>
+        </span>
+      </div>
+    </div>
+  </header>
+  <div class="wrap">
+    <a href="https://alexbahy-tech.github.io/smartkurikulumsmkn1mt/" class="back-btn">← Kembali ke Dashboard</a>
+    <div class="card">
+      <div class="sel-wrap">
+        <div class="sel-label">Filter Program Keahlian</div>
+        <select class="sel-input" id="prodiFilter" onchange="applyFilter()">
+          <option value="">— Tampilkan Semua Siswa —</option>
+          <option value="Akuntansi dan Keuangan Lembaga">Akuntansi dan Keuangan Lembaga</option>
+          <option value="Pemasaran">Pemasaran</option>
+          <option value="Manajemen Perkantoran dan Layanan Bisnis">Manajemen Perkantoran dan Layanan Bisnis</option>
+          <option value="Teknik Jaringan Komputer dan Telekomunikasi">Teknik Jaringan Komputer dan Telekomunikasi</option>
+          <option value="Teknik Ketenagalistrikan">Teknik Ketenagalistrikan</option>
+          <option value="Usaha Layanan Pariwisata">Usaha Layanan Pariwisata</option>
+        </select>
+      </div>
+    </div>
+    <div class="stats-row" id="statsRow" style="display:none">
+      <div class="stat-card"><div class="stat-label">Total Siswa</div><div class="stat-val" id="statTotal">0</div><div class="stat-sub" id="statProdi">Semua program keahlian</div></div>
+      <div class="stat-card"><div class="stat-label">Nilai Lengkap</div><div class="stat-val" id="statLengkap" style="color:var(--ok)">0</div><div class="stat-sub">Semua semester terisi</div></div>
+      <div class="stat-card"><div class="stat-label">Nilai Sebagian</div><div class="stat-val" id="statSebagian" style="color:var(--goldL)">0</div><div class="stat-sub">Sebagian semester terisi</div></div>
+      <div class="stat-card"><div class="stat-label">Belum Ada Nilai</div><div class="stat-val" id="statKosong" style="color:var(--err)">0</div><div class="stat-sub">Belum ada nilai masuk</div></div>
+    </div>
+    <div class="card" id="tableCard">
+      <div class="spinner-wrap show" id="spMain"><div class="spinner"></div></div>
+      <div id="tableContent" style="display:none">
+        <div class="table-head">
+          <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
+            <span class="table-title" id="tableTitle">Daftar Siswa</span>
+            <span class="table-count" id="tableCnt">0</span>
+          </div>
+        </div>
+        <div class="update-bar" id="updateBar">
+          <span id="updateIcon">✅</span>
+          <span id="updateMsg">Data tersinkronisasi</span>
+          <span class="update-countdown" id="updateCountdown">Refresh dalam 30s</span>
+        </div>
+        <div class="filter-bar">
+          <input type="text" class="filter-inp" id="searchInp" placeholder="🔍 Cari nama siswa / NIS / NISN..." oninput="applyFilter()">
+          <select class="sel-input" id="nilaiFilter" style="flex:none;width:auto;padding:.55rem .9rem;font-size:.82rem;" onchange="applyFilter()">
+            <option value="">Semua Status Nilai</option>
+            <option value="full">Nilai Lengkap ✅</option>
+            <option value="part">Nilai Sebagian ⏳</option>
+            <option value="none">Belum Ada Nilai ❌</option>
+          </select>
+        </div>
+        <div class="select-all-row">
+          <input type="checkbox" class="row-cb" id="cbAll" onchange="toggleAll(this)">
+          <label for="cbAll" style="cursor:pointer;">Pilih Semua yang Ditampilkan</label>
+        </div>
+        <div class="tscroll">
+          <table>
+            <thead><tr>
+              <th style="width:38px;text-align:center;">✓</th>
+              <th style="width:42px;">No.</th>
+              <th>Nama Siswa</th>
+              <th>Tempat / Tgl Lahir</th>
+              <th style="width:70px;">NIS</th>
+              <th style="width:110px;">NISN</th>
+              <th style="width:210px;">Program Keahlian</th>
+              <th style="width:100px;">Status Nilai</th>
+              <th style="text-align:center;width:190px;">Aksi</th>
+            </tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <div class="progress-wrap" id="progressWrap">
+          <div class="progress-text" id="progressText">Generating PDF...</div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        </div>
+        <div class="actions-bar">
+          <button class="abtn abtn-green" onclick="printSelected()">🖨️ Print Terpilih</button>
+          <button class="abtn abtn-teal" onclick="printAllVisible()">📄 Print Semua Ditampilkan</button>
+          <button class="abtn abtn-gold" onclick="reloadData()">🔄 Refresh Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <a href="https://alexbahy-tech.github.io/smartkurikulumsmkn1mt/" class="back-btn" style="display:inline-flex;margin-bottom:.8rem;">← Kembali ke Dashboard</a><br>
+    &copy; 2026 SMK Negeri 1 Maluku Tengah — Transkrip Nilai Generator v2
+  </footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  var PASSWORD  = 'SMKBisa';
+  var SHEET_ID  = '1mBR1I0srxVL8cVFftqaC3SWJqU1szM80GwMs-F9dYGY';
+  var SHEET_GID = '0';
+
+  var MAPEL = [
+    {label:'Pendidikan Agama dan Budi Pekerti',         grp:'A',s1:6, s2:19,s3:32,s4:44,s5:56, us:66},
+    {label:'Pendidikan Pancasila',                       grp:'A',s1:7, s2:20,s3:33,s4:45,s5:57, us:67},
+    {label:'Bahasa Indonesia',                           grp:'A',s1:8, s2:21,s3:34,s4:46,s5:58, us:68},
+    {label:'Pend. Jasmani, Olah Raga dan Kesehatan',    grp:'A',s1:9, s2:22,s3:35,s4:47,s5:null,us:69},
+    {label:'Sejarah',                                    grp:'A',s1:10,s2:23,s3:36,s4:48,s5:null,us:70},
+    {label:'Seni Budaya',                                grp:'A',s1:11,s2:24,s3:null,s4:null,s5:null,us:71},
+    {label:'Muatan Lokal',                               grp:'A',s1:12,s2:25,s3:37,s4:49,s5:59, us:72},
+    {label:'Matematika',                                 grp:'B',s1:13,s2:26,s3:38,s4:50,s5:60, us:73},
+    {label:'Bahasa Inggris',                             grp:'B',s1:14,s2:27,s3:39,s4:51,s5:61, us:74},
+    {label:'Informatika',                                grp:'B',s1:15,s2:28,s3:null,s4:null,s5:null,us:75},
+    {label:'Projek Ilmu Pengetahuan Alam dan Sosial',    grp:'B',s1:16,s2:29,s3:null,s4:null,s5:null,us:76},
+    {label:'Dasar-dasar Program Keahlian',               grp:'B',s1:17,s2:30,s3:null,s4:null,s5:null,us:77},
+    {label:'Konsentrasi Keahlian',                       grp:'B',s1:null,s2:null,s3:40,s4:52,s5:62,us:78},
+    {label:'Kreativitas, Inovasi dan Kewirausahaan',     grp:'B',s1:null,s2:null,s3:41,s4:53,s5:63,us:79},
+    {label:'Mata Pelajaran Pilihan',                     grp:'B',s1:null,s2:null,s3:42,s4:54,s5:64,us:80},
+  ];
+  var COL_RATA=81;
+  var BULAN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+var US_DATA = {
+'ALDY SOPAMENA':[78,81,77,80,79,81,80,79,85,77,75,80,75,80,76],
+'ANAMARIA KANETY':[80,88,87,82,80,82,81,81,86.4,82,86,82,79,83,82],
+'ARYO ARDY TETIONA':[76,82,78,81,80,80,81,76,79.6,76,82,80,75,80,75],
+'EFALZYA NATALIA SELANO':[87,87,80,80,80,83,81,87,84.5,81,84,85,84,82,82],
+'FORTHIN FRITS LUTURKEY':[80,84,82,82,80,83,82,81,83.3,79,86,83,79,80,80],
+'INGGRID RENATA NIKIJULUW':[80,90,85,83,81,85,81,81,88.6,82,83,86,79,83,80],
+'JULIANDRO VADLY NUSAWAKAN':[79,86,78,80,80,82,81,81,75,79,83,80,77.5,80,79],
+'JULIO S. TANIWEL':[77,85,76,81,80,80,80,79,75.7,79,84,80,76,80,76],
+'KIRANA':[87,84,80,84,80,84,80,82,81.8,83.5,85,85,86.5,83,85],
+'MARLIAN GEOFANIA SEPTORY':[85,90,88,84,86,86,81,85,90,87,90,88,88,88,88],
+'MELYANUS PATTIPEILUHU':[84,90,89,81,80,84,80,84,89.3,83.5,86,85,80,88,80],
+'RISAD ALFONS':[80,80,77,80,80,81,81,80,83.1,77.5,84,81,79,80,79],
+'SARDILLA WAEL':[90,90,86,84,82,84,80,84,90,84,89,89,85,84,80],
+'SARY DORCI LATUKASALE':[76,82,80,80,80,80,81,77,78.9,76,85,80,75,80,76],
+'SHARON CARLOSSA LUMALESSIL':[82,89,82,84,83,87,81,82,90,90,88,87,87,86,86],
+'SUKMA RAJID':[87,84,81,82,80,84,81,81,90,82,88,84,80,82,84],
+'TELLY EVELIN ISTIA':[80,89,87,83,80,84,80,81,90,83,89,87,84,83,84],
+'VANEL KILER UKRU':[81,87,85,81,84,85,81,82,90,85,87,85,86.5,82,84],
+'WA FIRNA':[90,88,81,84,80,88,81,81,81.8,87,86,89,93,87,86],
+'ANDREAS OIL':[80,82,82,81,80,80,80,77.6,80,78,80,85,80,77,79],
+'CHRISTY DANIELLA MANDUAPESSY':[80,86,81,80,80,84,81,79.1,80,80,84,87,82,80,92],
+'DEFANA PASKALINA TANROBAK':[82,87,80,80,80,84,81,75.1,85,79,85,87,82,83,91],
+'DIMA USMAN':[88,90,84,81,80,85,81,82.9,85,80,88,87,81,93,92],
+'DOMINGGUS LILIHATA':[80,80,78,78,78,80,80,79.1,75,78,80,80,78,77,78],
+'FRANSISKA TUAPUTIMAIN':[82,85,80,81,80,83,81,76,78,80,84,82,79,76,77],
+'GUIDO JOUFE JUNIOR MAKATITAL':[80,85,78,80,80,80,80,76.8,75,79,81,83,79,79,75],
+'IGONASIUS WATHURU':[95,86,80,83,80,81,80,76.8,80,79,82,83,81,82,78],
+'JEKSON AWAYAL':[80,82,78,80,80,80,80,82.1,75,80,81,80,78,76,79],
+'LA JUNAIDI':[85,80,82,80,80,85,80,81.4,80,78,85,86,82,97,81],
+'LA ODE YUSRAN':[85,85,82,80,79,83,80,76.8,75,77,79,80,82,94,90],
+'LENI VANESYA LEKALETTE':[84,81,80,81,80,85,81,81.4,85,81,86,90,83,83,82],
+'MAEMUNA NANUAYO':[87,86,85,80,80,84,80,77.6,80,81,84,87,82,82,76],
+'MARTHA PAULA':[84,88,80,81,80,82,82,81.9,80,79,85,80,80,77,75],
+'MARVIN S MALOY':[81,87,78,82,80,82,80,76.8,78,80,82,80,76,77,75],
+'VALENCIA MAHINANO':[82,86,79,80,80,80,81,79.1,75,80,86,80,79,76,77],
+'VALENTINO LILIHATA':[81,81,80,79,78,80,80,80.6,75,79,81,80,76,76,75],
+'WIDYA ISTIQOMAH':[88,90,83,80,80,86,81,79.1,80,80,84,87,85,86,89],
+'AGUSTINA BERLIN MARANTIKA':[87,87,80,80,80,85,80,81,83,83,85,88,88,82,87.5],
+'ALDRIANO BERNARD SABONWALY':[85,90,87,81,80,88,81,81,85,88,89,90,90,81,90],
+'ALLAIDA MARSYA KOMSARY':[88,90,86,82,80,87,81,86,85,83,88,90,90,85,90],
+'ALMENDO J LASAMAHU':[87,82,78,82,80,82,81,77,79,75,80,80,80,80,80],
+'BRYAN SOUISA':[87,90,80,83,84,84,80,81,85,83,87,88,88,82,87.5],
+'DELVIA CRISTIN RAHAKBAU':[88,80,80,80,84,81,81,79,82,75,86,80,80,80,80],
+'ELMA RENYAAN':[100,88,81,81,80,85,80,81,82,81,86,88,88,82,87.5],
+'ESTER KAPITAN':[87,83,81,80,80,80,80,78,82,75,86,82,85,80,80],
+'FEBRIYANTI LA MUHAMMAD':[85,85,83,79,80,80,80,79,80,75,85,80,80,80,80],
+'GRACIA ALFA MALUTA':[89,90,84,80,80,85,80,85,85,88,90,92,90,87,87.5],
+'GREYSELA MAOLLO':[89,89,82,80,80,83,80,81,82,79,87,88,88,80,85],
+'HENGKI LUTURYALI':[86,86,81,81,80,83,81,78,79,78,86,85,82,80,85],
+'JAINAL ABIDIN BARUTRESI':[80,85,79,79,79,80,80,76,79,75,81,82,80,80,80],
+'KIRANA CITRA LESTARI':[90,90,90,82,80,88,82,86,90,85,88,92,90,89,90],
+'LAUTRISSIA E MANABUNG':[88,90,81,81,79,84,80,82,89,83,86,90,88,81,87.5],
+'MARICE KASTILONG':[85,86,87,80,80,84,81,81,82,83,85,88,88,80,85],
+'MARTA H. SOAKALUNE':[85,90,84,80,80,86,80,81,85,78,85,85,88,82,85],
+'MILITIA C. SABUAI':[87,83,80,81,80,83,81,80,83,75,84,82,85,80,85],
+'MUHAIMIN K LEWENUSSA':[84,85,80,82,80,83,80,81,82,78,80,85,85,80,80],
+'NOVRIETA K ILELA':[85,85,80,80,80,82,81,81,83,81,85,85,85,80,85],
+'RIO KELIOMBAR':[88,82,79,82,80,85,81,80,82,80,82,85,88,80,87.5],
+'TANIA THOFILIA ILELA':[80,80,82,80,83,80,80,79,80,75,84,82,85,80,80],
+'THREE AYU OHELLO':[88,87,85,81,85,84,81,81,85,80,87,80,85,80,82.5],
+'YANDRY TOMASOA':[87,81,78,82,80,84,81,80,80,78,83,82,80,80,80],
+'AFDAL SEKAWAN':[88,86,85,80,79,86,80,78.4,86.7,83,87,87,88,90,88],
+'APRILIO C TELUSSA':[85,86,80,82,80,85,80,79.9,84.8,80,85,87,88,90,88],
+'ASWAR RAMDAN':[88,88,80,80,80,86,80,81.2,90,83,87,87,88,90,88],
+'CARSTENSZ MANUELA LAWALATA':[80,82,79,81,79,84,80,78.9,75,80,82,85,86,88,86],
+'DARNI RUSNIA WANCI LELANGAYA':[85,80,80,80,80,83,81,76.9,86,80,88,78,79,80,79],
+'GENIE DEBORA SOUISSA':[90,90,90,83,85,88,85,80.7,86.9,90,89,92,93,93,93],
+'GITTA AVELINE TITIHERU':[82,88,86,80,80,83,80,79.9,91.2,81,87,87,88,88,88],
+'GRAIYEN HERMAN YASSO':[82,86,78,80,80,82,80,77.6,76.4,80,86,87,88,88,88],
+'GRASIAN LASAMAHU':[85,89,87,82,80,86,80,79.9,90,90,89,88,89,93,89],
+'ILDHAN MAULANA SUBHAN':[92,90,89,82,80,87,80,79.2,90,90,87,92,93,93,93],
+'ILLAH ARSILLAH MISSY':[85,85,79,83,79,85,80,75.4,85.1,80,86,85,86,89,86],
+'IMANUEL CHRISTIAN PATTIRADJAWANE':[82,83,85,80,80,85,80,75.9,75.3,81,85,87,88,89,88],
+'JAKSON NAYATUEN':[81,83,81,81,80,82,80,76.1,83.3,80,83,82,83,85,85],
+'JENITA PEIRISSA':[100,85,80,81,80,86,81,77.6,83.5,82,85,87,88,90,88],
+'JESLY SARAH WAKOLE':[90,90,90,80,80,89,81,86.7,90,90,90,92,93,93,93],
+'JOMA LIDYA SOUMOKIL':[82,89,89,82,80,88,81,78.4,90,84,86,89,90,91,89],
+'MAGDALENA RAHAKBAUW':[100,88,85,80,80,87,81,77.6,85.3,84,89,89,90,90,89],
+'MARCEL SEPTORY':[82,80,80,81,80,81,80,79.9,82.3,80,82,82,83,82,83],
+'NOTJE SIMON KAREL RAINONY':[98,83,83,82,81,85,80,85.9,83,80,85,89,90,90,89],
+'PETRONELA HUKOM':[83,90,80,81,85,86,81,79.4,85.9,84,86,90,91,90,90],
+'PRIMUS QWINTUS IDI':[100,80,80,80,80,85,80,78.4,90,82,82,88,89,89,89],
+'RAYHAN AKRAM':[90,90,85,81,80,87,80,79.9,90,82,87,88,89,89,90],
+'RIONALDO RUPIDARA':[81,80,77,80,80,84,80,79.9,84.6,80,82,82,83,85,83],
+'SANDER ILELA':[82,84,78,81,80,84,80,79.9,84.3,80,87,89,90,90,90],
+'SANTIKA ANATASYA LOILALY':[85,86,83,82,80,84,80,79.9,80.7,82,86,89,90,90,90],
+'SUCI RANI':[88,82,85,80,80,86,80,79.9,90,80,83,82,83,85,83],
+'TESALONIKA P SERUMENA':[84,90,88,83,85,87,80,80.7,86.5,84,89,90,91,90,90],
+'TOSY PAY WATTIMENA':[83,82,84,80,80,82,80,77.6,84,80,82,87,89,89,89],
+'AGUSTINUS ANDRE KAKISINA':[88,83,82,80,81,80,80,79,80,80,84,80,80,80,80],
+'AHMAD AGUNG NUGRAHA':[88,89,83,81,85,83,80,80,80,80,85,88,85,85,87],
+'ALEXANDRA LIKUMAHWA':[87,90,85,82,82,85,80,81,83,80,86,89,82,80,83],
+'ANDIKA NAHATUE':[87,80,78,84,80,83,80,80,82,79.5,85,80,80,80,80],
+'APRILLIA SIAHAYA':[85,90,80,81,80,83,80,81,85,80,86,86,82,82,82],
+'ARJUN TUHUTERU':[80,82,78,80,76,80,80,76,75,77.5,81,80,80,80,78],
+'ATIMA PIA':[84,88,80,82,82,83,80,76,83,80.1,81,85,80,86,82],
+'BIONDI TEHUAYO':[80,86,77,79,80,83,80,78,80,79.5,83,83,80,82,80],
+'BRAM SMILLER BOIRATAN':[88,90,84,82,83,86,81,80,85,80.5,87,86,91,86,88],
+'BRAYEN SAMALLO':[84,88,79,81,80,84,80,76,75,80,81,85,84.1,80,80],
+'CHRISTOFEL DOMINGGUS TALIAK':[85,85,79,79,80,83,80,79,80,80.3,84,83,83,80,80],
+'CLIEF ADRIANO TUPAMAHU':[83,86,83,80,80,80,80,77,75,79.9,83,80,80,80,80],
+'DANDI SOUNAWE':[84,83,78,81,80,82,80,76,75,79.9,81,82,80,80,80],
+'ELIS SESER KAKIAY':[85,86,85,80,82,83,80,79,80,79.9,84,81,80,80,82],
+'EVAN SOUNAWE':[86,85,80,83,80,82,80,76,78,80,81,82,80,82,80],
+'FAREL.G.C.SOUKOTTA':[86,87,81,82,81,83,81,80,85,80.2,85,82,85,83,83],
+'FRISELTER. F D . TANAMAL':[86,88,82,81,80,83,80,75,78,80.3,80,82,80,80,82],
+'ISMAIL RAHADI SELLA':[90,90,87,83,84,85,80,84,88,80.2,88,84.8,87,87,87],
+'JOSSE HERMON MAIRIMA':[88,89,82,84,82,84,80,80,80,82,85,85,82,82,87],
+'JOSUA RATMALA':[85,85,80,82,82,82,80,76,78,80.5,81,82,80,83,80],
+'JOY GAINER WENNO':[84,90,81,81,80,85,80,83,83,81,86,83,83,80,80],
+'MARLEV MAHINANO':[82,84,85,82,80,83,80,76,78,80.1,81,80,80,80,80],
+'MIFTAH FAHRIL PANIKFAT':[82,85,80,80,80,80,80,77,78,80.1,82,80,80,80,80],
+'MOH. SUWAIDI TUASIKAL':[90,90,87,83,89,87,80,82,83,82,87,90,89,87,91],
+'NIELS WEMPI WATTIMURY':[84,86,84,80,82,84,80,80,80,80,85,91,91,83,89],
+'PETRIS PAUNNO':[85,83,79,80,81,84,80,80,84,80,85,83,82,80,83],
+'REVAN PEPNA':[85,86,77,81,80,83,80,77,78,80,82,81,80,82,82],
+'REVAND NORIS YAMLEAN':[90,88,82,82,82,83,81,82,84,82,87,85,83,82,86],
+'SALMAN HIDAYAT PETANUSSA':[90,90,83,80,81,85,80,81,83,82,86,84,83,86,84],
+'SYAHRIL PATI ANGGODA':[80,80,78,80,80,81,80,75,80,80,80,80.2,80,80,81],
+'TARMIN RIDHA IPAENIN':[85,89,85,81,83,82,81,81,75,80,86,85,84,80,84],
+'YULIAN LODWIK PAYARA':[84,83,83,80,84,85,80,80,75,80,85,89,91,85,85],
+'ALIYAH SUFIATY WATTIMENA':[88,86,83,83,80,84,80,86.9,82,80,86,80,80,80,82],
+'BRIAN SILAYA':[85,87,81,82,80,84,80,78.5,83,80,86,86,87,80,80],
+'CHRISMEN VARLY UBYAAN':[90,90,85,84,81,88,82,86.9,90,87,88,90,90,86,88],
+'DERLISYE E SAPULETTE':[88,87,81,82,80,81,80,78.5,82,80,85,86,80,80,80],
+'DEVI CH. E. SAPULETTE':[82,81,83,81,80,81,80,80,82,80,85,81,80,80,78],
+'DIRLI DAHAKLORY':[82,83,78,80,80,80,80,78.5,78,78,84,78,78,78,78],
+'HAFID FAQIH ZAINU ARRIZQO':[90,90,86,84,85,90,85,84.6,90,90,90,90,90,88,85],
+'HEALTHY WALALAYO':[87,90,84,82,80,85,80,81.6,83,80,87,80,80,80,88],
+'INDRAWATI LOUHENAPESSY':[88,90,88,80,80,89,82,85.4,90,85,89,88,88,88,88],
+'JENNYVER TAPILATU':[85,89,80,82,80,84,82,86.9,88,85,89,85,85,80,85],
+'JONATHAN CHRISTO EUGARA':[85,87,81,81,79,84,82,80.8,88,90,87,88,88,85,85],
+'LEONTIN AMARMOLLO':[84,89,80,83,80,87,81,83.8,89,90,86,88,88,80,82],
+'MORENA SAPULETTE':[84,86,80,82,80,84,80.5,78.5,83,80,86,80,80,80,78],
+'SHEILLA SHEKINA GLORY LEKAHENA':[84,90,82,82,80,83,80.5,78.5,89,87,88,88,85,80,85],
+'STARI SOSALE':[85,90,80,80,80,84,81.2,75.4,87,85,85,85,80,80,85],
+'THESALONIKA ILELAPOTOA':[89,90,89,82,84,87,83.5,90.5,90,87,89,88,88,88,88],
+'TRIVENA DICHA KOMSARY':[85,88,83,82,80,84,80.5,84.6,83,80,84,80,80,80,85],
+'WILYAMS MAOLLO':[84,82,80,81,80,82,80,78.5,80,80,84,80,80,80,78],
+'YUNED SAMALLO':[84,86,86,82,81,84,80,83.2,90,85,90,85,85,80,85],
+};
+
+function getUSValues(studentName) {
+  var key = String(studentName).trim().toUpperCase();
+  if (US_DATA[key]) return US_DATA[key];
+  var keys = Object.keys(US_DATA);
+  for (var i = 0; i < keys.length; i++) {
+    if (keys[i].replace(/\s+/g,' ') === key.replace(/\s+/g,' ')) return US_DATA[keys[i]];
+  }
+  return null;
+}
+function getUSForMapel(studentName, mapelIndex) {
+  var usVals = getUSValues(studentName);
+  if (!usVals || mapelIndex < 0 || mapelIndex >= usVals.length) return '';
+  var v = usVals[mapelIndex];
+  if (v === null || v === undefined || v === '') return '';
+  return Math.round(v).toString();
+}
+function getUSRata(studentName) {
+  var usVals = getUSValues(studentName);
+  if (!usVals) return '0.00';
+  var tot = 0, cnt = 0;
+  for (var i = 0; i < usVals.length; i++) {
+    var v = usVals[i];
+    if (v !== null && v !== undefined && v !== '' && v !== 0) { tot += parseFloat(v); cnt++; }
+  }
+  return cnt > 0 ? (tot / cnt).toFixed(2) : '0.00';
+}
+
+  var allStudents=[],filteredStudents=[],currentPreviewIdx=-1;
+  var gvizCounter=0,autoRefreshTimer=null,countdownTimer=null;
+  var lastRefreshTime=null,isRefreshing=false,AUTO_REFRESH_MS=30000,countdownSec=0;
+
+  function $id(id){return document.getElementById(id);}
+  function escH(s){var d=document.createElement('div');d.appendChild(document.createTextNode(String(s||'')));return d.innerHTML;}
+  function fmtDate(){var d=new Date();return d.getDate()+' '+BULAN[d.getMonth()]+' '+d.getFullYear();}
+  function showToast(msg,type){var el=$id('toast');el.textContent=msg;el.className='toast show'+(type==='ok'?' ok':type==='err'?' err':'');setTimeout(function(){el.className='toast';},3500);}
+
+  function cellNum(raw){
+    if(raw===null||raw===undefined||raw==='') return null;
+    var s=String(raw).replace(',','.').trim();
+    if(s===''||s.toLowerCase()==='nan') return null;
+    var n=parseFloat(s);
+    if(isNaN(n)) return null;
+    return n;
+  }
+  function fmtVal(raw){
+    var n=cellNum(raw);
+    if(n===null||n===0) return '';
+    return Math.round(n).toString();
+  }
+  function fmtUS(raw){
+    var n=cellNum(raw);
+    if(n===null) return '';
+    return Math.round(n).toString();
+  }
+
+  function rataRaporMapel(row,m){
+    var tot=0,cnt=0;
+    ['s1','s2','s3','s4','s5'].forEach(function(sem){
+      if(m[sem]===null||m[sem]===undefined) return;
+      var n=cellNum(row[m[sem]]);
+      if(n!==null&&n!==0){tot+=n;cnt++;}
+    });
+    return cnt>0?Math.round(tot/cnt).toString():'';
+  }
+
+  function rataFinalSiswa(row){
+    /* Hitung rata-rata RAPOR:
+       1. Hitung rata-rata per mapel dari semester 1-5 (= kolom "Rata-Rata Rapor")
+       2. Rata-ratakan semua nilai rata-rata mapel tersebut
+       Contoh: Mapel Agama rata-rata rapor = 84, Pancasila = 83, dst.
+       Rata-rata final = (84+83+...)/15 */
+    var tot=0,cnt=0;
+    MAPEL.forEach(function(m){
+      var mTot=0,mCnt=0;
+      ['s1','s2','s3','s4','s5'].forEach(function(sem){
+        if(m[sem]===null||m[sem]===undefined) return;
+        var n=cellNum(row[m[sem]]);
+        if(n!==null&&n!==0){mTot+=n;mCnt++;}
+      });
+      if(mCnt>0){
+        tot+=Math.round(mTot/mCnt); // rata-rata rapor per mapel (dibulatkan)
+        cnt++;
+      }
+    });
+    return cnt>0?(tot/cnt).toFixed(2):'';
+  }
+
+  function countFilledSems(row){
+    var cnt=0;
+    ['s1','s2','s3','s4','s5'].forEach(function(sem){
+      var has=false;
+      MAPEL.forEach(function(m){
+        if(m[sem]===null||m[sem]===undefined) return;
+        var n=cellNum(row[m[sem]]);
+        if(n!==null&&n!==0) has=true;
+      });
+      if(has) cnt++;
+    });
+    return cnt;
+  }
+
+  function doLogin(){
+    if($id('loginPw').value===PASSWORD){
+      $id('loginWrap').classList.add('hidden');
+      $id('app').classList.add('visible');
+      loadData();
+    } else {
+      $id('loginErr').classList.add('show');
+      $id('loginPw').value='';
+      setTimeout(function(){$id('loginErr').classList.remove('show');},2500);
+    }
+  }
+
+  function gvizFetch(range){
+    return new Promise(function(resolve,reject){
+      var cbName='_gviz'+(++gvizCounter);
+      var script=document.createElement('script');
+      var timer=setTimeout(function(){cleanup();reject(new Error('Timeout mengambil data'));},25000);
+      function cleanup(){clearTimeout(timer);delete window[cbName];if(script.parentNode)script.parentNode.removeChild(script);}
+      window[cbName]=function(resp){
+        cleanup();
+        if(resp.status==='error'){reject(new Error('Sheet tidak dapat diakses.'));return;}
+        var rows=(resp.table&&resp.table.rows)||[];
+        var result=rows.map(function(row){
+          return (row.c||[]).map(function(cell){
+            if(!cell) return '';
+            if(cell.f!=null&&String(cell.f).trim()!=='') return String(cell.f).trim();
+            if(cell.v!=null&&String(cell.v).trim()!=='') return String(cell.v).trim();
+            return '';
+          });
+        });
+        resolve(result);
+      };
+      script.onerror=function(){cleanup();reject(new Error('Gagal memuat script gViz'));};
+      script.src='https://docs.google.com/spreadsheets/d/'+SHEET_ID+
+        '/gviz/tq?tqx=out:json;responseHandler:'+cbName+
+        '&gid='+SHEET_GID+'&range='+encodeURIComponent(range)+'&headers=0';
+      document.head.appendChild(script);
+    });
+  }
+
+  function parseRows(rows){
+    var students=[];
+    for(var i=0;i<rows.length;i++){
+      var r=rows[i];
+      var nama=String(r[1]||'').trim();
+      if(!nama||nama.toLowerCase()==='nama lengkap') continue;
+      var no=String(r[0]||'').trim();
+      if(!no) continue;
+      students.push({no:no,nama:nama,ttl:String(r[2]||'').trim(),
+        nis:String(r[3]||'').trim(),nisn:String(r[4]||'').trim(),
+        prodi:String(r[5]||'').trim(),row:r});
+    }
+    return students;
+  }
+
+  function loadData(){
+    $id('spMain').classList.add('show');
+    $id('tableContent').style.display='none';
+    setLiveBadge('syncing','Memuat data...');
+    gvizFetch('A3:CF300').then(function(rows){
+      allStudents=parseRows(rows);
+      lastRefreshTime=new Date();
+      $id('spMain').classList.remove('show');
+      $id('tableContent').style.display='block';
+      $id('statsRow').style.display='';
+      var prodis=[...new Set(allStudents.map(function(s){return s.prodi;}).filter(Boolean))].sort();
+      var sel=$id('prodiFilter');
+      sel.innerHTML='<option value="">\u2014 Tampilkan Semua Siswa \u2014</option>';
+      prodis.forEach(function(p){var o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);});
+      applyFilter();showUpdateBar(false);
+      setLiveBadge('live','Live \u00b7 '+allStudents.length+' siswa');
+      showToast('\u2705 '+allStudents.length+' siswa berhasil dimuat','ok');
+      startAutoRefresh();
+    }).catch(function(err){
+      $id('spMain').classList.remove('show');
+      $id('tableContent').style.display='block';
+      $id('statsRow').style.display='';
+      $id('tbody').innerHTML='<tr><td colspan="9"><div class="empty"><p>\u26a0\ufe0f '+escH(err.message)+'</p></div></td></tr>';
+      setLiveBadge('error','Gagal memuat');
+      showToast('Gagal memuat: '+err.message,'err');
+    });
+  }
+
+  function silentRefresh(){
+    if(isRefreshing)return;isRefreshing=true;
+    setLiveBadge('syncing','Sinkronisasi...');
+    gvizFetch('A3:CF300').then(function(rows){
+      isRefreshing=false;
+      var students=parseRows(rows);
+      var changed=(allStudents.length!==students.length);
+      allStudents=students;lastRefreshTime=new Date();
+      if(changed){applyFilter();showUpdateBar(true,{any:true,added:Math.max(0,students.length-allStudents.length),removed:0});showToast('\ud83d\udd04 Data diperbarui!','ok');}
+      else showUpdateBar(false);
+      setLiveBadge('live','Live \u00b7 '+allStudents.length+' siswa');
+    }).catch(function(){isRefreshing=false;setLiveBadge('live','Live \u00b7 '+allStudents.length+' siswa');});
+  }
+
+  function startAutoRefresh(){stopAutoRefresh();countdownSec=AUTO_REFRESH_MS/1000;updateCountdown();countdownTimer=setInterval(function(){countdownSec--;if(countdownSec<=0)countdownSec=AUTO_REFRESH_MS/1000;updateCountdown();},1000);autoRefreshTimer=setInterval(function(){countdownSec=AUTO_REFRESH_MS/1000;silentRefresh();},AUTO_REFRESH_MS);}
+  function stopAutoRefresh(){if(autoRefreshTimer){clearInterval(autoRefreshTimer);autoRefreshTimer=null;}if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null;}}
+  function updateCountdown(){var el=$id('updateCountdown');if(el)el.textContent='Refresh otomatis dalam '+countdownSec+'s';}
+  function reloadData(){stopAutoRefresh();allStudents=[];filteredStudents=[];loadData();}
+
+  function setLiveBadge(state,text){var b=$id('liveBadge'),t=$id('liveText');if(!b||!t)return;b.className='live-badge'+(state==='syncing'?' syncing':state==='error'?' error':'');t.textContent=text;}
+  function showUpdateBar(changed,info){
+    var bar=$id('updateBar'),msg=$id('updateMsg'),ico=$id('updateIcon');if(!bar)return;
+    bar.classList.add('show');
+    if(changed&&info){bar.classList.add('changed');setTimeout(function(){bar.classList.remove('changed');},700);ico.textContent='\u2728';var parts=[];if(info.added>0)parts.push(info.added+' siswa baru');if(info.removed>0)parts.push(info.removed+' dihapus');msg.textContent='Data berubah: '+parts.join(', ');}
+    else{ico.textContent='\u2705';var t=lastRefreshTime;var jam=t?(('0'+t.getHours()).slice(-2)+':'+('0'+t.getMinutes()).slice(-2)+':'+('0'+t.getSeconds()).slice(-2)):'--:--';msg.textContent='Tersinkronisasi pukul '+jam;}
+  }
+
+  function applyFilter(){
+    var prodi=$id('prodiFilter').value;
+    var search=($id('searchInp')?$id('searchInp').value:'').toLowerCase().trim();
+    var nilaiF=($id('nilaiFilter')?$id('nilaiFilter').value:'');
+    filteredStudents=allStudents.filter(function(s){
+      if(prodi&&s.prodi!==prodi)return false;
+      if(search&&s.nama.toLowerCase().indexOf(search)<0&&s.nis.indexOf(search)<0&&s.nisn.indexOf(search)<0)return false;
+      if(nilaiF){var c=countFilledSems(s.row);if(nilaiF==='full'&&c<5)return false;if(nilaiF==='part'&&(c===0||c>=5))return false;if(nilaiF==='none'&&c>0)return false;}
+      return true;
+    });
+    updateStats(prodi);renderTable();
+  }
+
+  function updateStats(prodi){
+    var pool=prodi?allStudents.filter(function(s){return s.prodi===prodi;}):allStudents;
+    var full=0,part=0,none=0;
+    for(var i=0;i<pool.length;i++){var c=countFilledSems(pool[i].row);if(c>=5)full++;else if(c>0)part++;else none++;}
+    $id('statTotal').textContent=pool.length;$id('statProdi').textContent=prodi||'Semua program keahlian';
+    $id('statLengkap').textContent=full;$id('statSebagian').textContent=part;$id('statKosong').textContent=none;
+  }
+
+  function renderTable(){
+    var tb=$id('tbody');
+    $id('tableCnt').textContent=filteredStudents.length+' Siswa';
+    var prodi=$id('prodiFilter').value;
+    $id('tableTitle').textContent=prodi?'Daftar Siswa \u2014 '+prodi:'Seluruh Siswa';
+    if(!filteredStudents.length){tb.innerHTML='<tr><td colspan="9"><div class="empty"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><p>Tidak ada data siswa yang cocok</p></div></td></tr>';return;}
+    var html='';
+    for(var i=0;i<filteredStudents.length;i++){
+      var s=filteredStudents[i];var c=countFilledSems(s.row);
+      var bc=c>=5?'sc-full':c>0?'sc-part':'sc-none';
+      var bi=c>=5?'\u2705':c>0?'\u23f3':'\u274c';
+      html+='<tr><td style="text-align:center"><input type="checkbox" class="row-cb item-cb" data-idx="'+i+'"></td><td><span class="row-no">'+escH(s.no)+'</span></td><td><span class="row-name">'+escH(s.nama)+'</span></td><td>'+escH(s.ttl)+'</td><td>'+escH(s.nis)+'</td><td>'+escH(s.nisn)+'</td><td><span class="row-prodi" title="'+escH(s.prodi)+'">'+escH(s.prodi.length>28?s.prodi.slice(0,26)+'\u2026':s.prodi)+'</span></td><td><span class="sc-badge '+bc+'">'+bi+' '+c+'/5</span></td><td><div class="row-actions"><button class="btn-prev" onclick="previewTranskrip('+i+')">\ud83d\udc41\ufe0f Preview</button><button class="btn-print" onclick="printTranskrip('+i+')">\ud83d\udda8\ufe0f Print</button><button class="btn-dl" onclick="downloadPDF('+i+')">\ud83d\udcc4 PDF</button></div></td></tr>';
+    }
+    tb.innerHTML=html;$id('cbAll').checked=false;
+  }
+
+  function toggleAll(el){var cbs=document.querySelectorAll('.item-cb');for(var i=0;i<cbs.length;i++)cbs[i].checked=el.checked;}
+
+  /* ========== MODIFIED buildTranskripHtml — US values from US_DATA ========== */
+  function buildTranskripHtml(stu){
+    var row=stu.row,tgl=fmtDate();
+
+    function sv(m,sem){
+      if(m[sem]===null||m[sem]===undefined)return '';
+      return fmtVal(row[m[sem]]);
+    }
+    /* MODIFIED: get US value from hardcoded US_DATA instead of sheet columns */
+    function uv(m){
+      var mi=MAPEL.indexOf(m);
+      return getUSForMapel(stu.nama,mi);
+    }
+    function rv(m){return rataRaporMapel(row,m);}
+
+    var rataFinal=rataFinalSiswa(row);
+
+    /* MODIFIED: get US rata from hardcoded US_DATA */
+    var rataUS=getUSRata(stu.nama);
+
+    var gA=MAPEL.filter(function(m){return m.grp==='A';});
+    var gB=MAPEL.filter(function(m){return m.grp==='B';});
+
+    function srow(no,m){
+      return '<tr><td class="col-no">'+no+'</td><td class="col-mapel">'+escH(m.label)+'</td><td class="col-sem">'+sv(m,'s1')+'</td><td class="col-sem">'+sv(m,'s2')+'</td><td class="col-sem">'+sv(m,'s3')+'</td><td class="col-sem">'+sv(m,'s4')+'</td><td class="col-sem">'+sv(m,'s5')+'</td><td class="col-rata-rapor">'+rv(m)+'</td><td class="col-us">'+uv(m)+'</td></tr>';
+    }
+
+    var h='<div class="tn-doc">';
+    h+='<div class="tn-kop">';
+    h+='<img src="https://iili.io/qdPnChb.png" alt="Logo" class="tn-kop-logo" onerror="this.style.display=\'none\'">';
+    h+='<div class="tn-kop-text">';
+    h+='<div class="gov">PEMERINTAH PROVINSI MALUKU</div>';
+    h+='<div class="dinas">DINAS PENDIDIKAN DAN KEBUDAYAAN</div>';
+    h+='<div class="school">SMK NEGERI 1 MALUKU TENGAH</div>';
+    h+='<div class="addr">Jl. Sultan Hasanuddin, &#9990; (0914) 21354 Kode Pos 97515</div>';
+    h+='<div class="addr">e-mail: smkn1malukutengah@gmail.com</div>';
+    h+='</div></div>';
+    h+='<hr class="tn-divider">';
+    h+='<div class="tn-title">TRANSKRIP NILAI</div>';
+    h+='<div class="tn-identity"><table>';
+    h+='<tr><td>Nama Lengkap</td><td>:</td><td style="text-align:left"><strong>'+escH(stu.nama)+'</strong></td></tr>';
+    h+='<tr><td>Tempat tanggal lahir</td><td>:</td><td style="text-align:left">'+escH(stu.ttl)+'</td></tr>';
+    h+='<tr><td>NIS</td><td>:</td><td style="text-align:left">'+escH(stu.nis)+'</td></tr>';
+    h+='<tr><td>NISN</td><td>:</td><td style="text-align:left">'+escH(stu.nisn)+'</td></tr>';
+    h+='<tr><td>Program Keahlian</td><td>:</td><td style="text-align:left">'+escH(stu.prodi)+'</td></tr>';
+    h+='</table></div>';
+    h+='<table class="tn-table"><thead><tr>';
+    h+='<th class="col-no" rowspan="2">No.</th>';
+    h+='<th class="col-mapel" rowspan="2" style="text-align:left">Mata Pelajaran</th>';
+    h+='<th colspan="5">Nilai Rapor / Semester</th>';
+    h+='<th class="col-rata-rapor" rowspan="2" style="font-size:8.5px;line-height:1.3">Rata-<br>Rata<br>Rapor</th>';
+    h+='<th class="col-us" rowspan="2" style="font-size:8.5px;line-height:1.3">Nilai<br>Ujian<br>Sekolah</th>';
+    h+='</tr><tr>';
+    h+='<th class="col-sem">1</th><th class="col-sem">2</th><th class="col-sem">3</th><th class="col-sem">4</th><th class="col-sem">5</th>';
+    h+='</tr></thead><tbody>';
+    h+='<tr class="row-group"><td>A.</td><td colspan="8" style="text-align:left">Kelompok Mata Pelajaran Umum</td></tr>';
+    for(var a=0;a<gA.length;a++) h+=srow((a+1)+'.',gA[a]);
+    h+='<tr class="row-group"><td>B.</td><td colspan="8" style="text-align:left">Kelompok Mata Pelajaran Kejuruan</td></tr>';
+    for(var b=0;b<gB.length;b++) h+=srow((b+1)+'.',gB[b]);
+    h+='<tr class="row-avg"><td></td><td style="text-align:center"><strong>Nilai Rata-Rata</strong></td><td></td><td></td><td></td><td></td><td></td><td><strong>'+escH(rataFinal)+'</strong></td><td><strong>'+escH(rataUS)+'</strong></td></tr>';
+    h+='</tbody></table>';
+    h+='<div class="tn-footer"><div class="tn-footer-box">';
+    h+='<div style="margin-bottom:6px">Maluku Tengah, '+tgl+'</div>';
+    h+='<div>Kepala Sekolah,</div>';
+    h+='<div style="height:58px"></div>';
+    h+='<div style="height:4px"></div>';
+    h+='<div style="font-weight:700;text-decoration:underline">SIANI LA JAMALUDIN, S.Pd.,M.Pd</div>';
+    h+='<div style="font-size:10px">NIP 197605152008011023</div>';
+    h+='</div></div></div>';
+    return h;
+  }
+
+  function getPrintCSS(){
+    return ['*{margin:0;padding:0;box-sizing:border-box}',
+      'body{font-family:"Times New Roman",Times,serif;font-size:11px;line-height:1.4;color:#000;background:#fff}',
+      '.tn-doc{font-family:"Times New Roman",Times,serif;font-size:11px;line-height:1.4;color:#000}',
+      '.tn-kop{display:flex;align-items:center;gap:12px;margin-bottom:3px}',
+      '.tn-kop-logo{width:60px;height:68px;object-fit:contain;flex-shrink:0}',
+      '.tn-kop-text{flex:1;text-align:center}',
+      '.tn-kop-text .gov{font-size:10px}','.tn-kop-text .dinas{font-size:11px;font-weight:700}',
+      '.tn-kop-text .school{font-size:14px;font-weight:700}','.tn-kop-text .addr{font-size:9px}',
+      '.tn-divider{border:none;border-top:3px double #000;margin:5px 0 10px}',
+      '.tn-title{text-align:center;font-weight:700;font-size:13px;margin:8px 0 10px}',
+      '.tn-identity{margin:0 0 10px}','.tn-identity table{border:none;border-collapse:collapse;width:100%}',
+      '.tn-identity td{padding:1.5px 4px;font-size:11px;vertical-align:top;text-align:left}',
+      '.tn-identity td:first-child{width:145px}','.tn-identity td:nth-child(2){width:12px}',
+      '.tn-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:9.5px}',
+      '.tn-table th,.tn-table td{border:1px solid #000;padding:2px 4px;text-align:center;vertical-align:middle}',
+      '.tn-table th{font-weight:700;font-size:9.5px;background:#0e7490;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}',
+      '.col-no{width:22px}','.col-mapel{text-align:left!important}','.col-sem{width:30px}',
+      '.col-rata-rapor{width:32px;font-size:8.5px;line-height:1.3}','.col-us{width:32px;font-size:8.5px;line-height:1.3}',
+      '.row-group td{font-weight:700;background:#e0f2f7;-webkit-print-color-adjust:exact;print-color-adjust:exact}',
+      '.row-group td:first-child{text-align:center}','.row-avg td{font-weight:700}',
+      '.tn-footer{margin-top:12px;display:flex;justify-content:flex-end;font-size:11px}',
+      '.tn-footer-box{text-align:center}'
+    ].join('');
+  }
+
+  function previewTranskrip(idx){
+    var s=filteredStudents[idx];if(!s)return showToast('Data tidak ditemukan','err');
+    currentPreviewIdx=idx;$id('modalBody').innerHTML=buildTranskripHtml(s);
+    $id('modalOverlay').classList.add('show');document.body.style.overflow='hidden';
+  }
+  function closeModal(){$id('modalOverlay').classList.remove('show');document.body.style.overflow='';currentPreviewIdx=-1;}
+  function printFromModal(){if(currentPreviewIdx<0)return;printTranskrip(currentPreviewIdx);}
+  function pdfFromModal(){if(currentPreviewIdx<0)return;downloadPDF(currentPreviewIdx);}
+
+  function printTranskrip(idx){
+    var stu=filteredStudents[idx];if(!stu)return showToast('Data tidak ditemukan','err');
+    openPrintWindow([stu],'Transkrip '+stu.nama);
+  }
+  function openPrintWindow(students,title){
+    var html='';
+    for(var i=0;i<students.length;i++){
+      var pb=(i<students.length-1)?' style="page-break-after:always"':'';
+      html+='<div'+pb+'>'+buildTranskripHtml(students[i])+'</div>';
+    }
+    var win=window.open('','_blank','width=816,height=1252');
+    win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+escH(title)+'</title>');
+    win.document.write('<style>'+getPrintCSS()+'body{padding:15mm 18mm}@media print{body{padding:0;margin:0}@page{size:A4 portrait;margin:15mm 18mm}}</style>');
+    win.document.write('</head><body>'+html+'</body></html>');
+    win.document.close();
+    win.onload=function(){setTimeout(function(){win.focus();win.print();},700);};
+  }
+
+  function downloadPDF(idx){
+    var stu=filteredStudents[idx];if(!stu)return showToast('Data tidak ditemukan','err');
+    showToast('Membuat PDF '+stu.nama+'...','');
+    var container=document.createElement('div');
+    container.style.cssText='position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:57px 68px;font-family:"Times New Roman",Times,serif;font-size:11px;line-height:1.4;color:#000;z-index:-1;';
+    var styleEl=document.createElement('style');styleEl.textContent=getPrintCSS();container.appendChild(styleEl);
+    var content=document.createElement('div');content.innerHTML=buildTranskripHtml(stu);container.appendChild(content);
+    document.body.appendChild(container);
+    html2canvas(container,{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',width:794,windowWidth:794}).then(function(canvas){
+      document.body.removeChild(container);
+      var imgData=canvas.toDataURL('image/jpeg',0.95);
+      var pdf=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+      var pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight();
+      var ih=(canvas.height/2)*(pw/(canvas.width/2));
+      if(ih<=ph){pdf.addImage(imgData,'JPEG',0,0,pw,ih);}
+      else{var yo=0;while(yo<ih){if(yo>0)pdf.addPage();pdf.addImage(imgData,'JPEG',0,-yo,pw,ih);yo+=ph;}}
+      pdf.save('Transkrip_'+stu.nama.replace(/\s+/g,'_')+'.pdf');
+      showToast('PDF '+stu.nama+' berhasil!','ok');
+    }).catch(function(e){document.body.removeChild(container);showToast('Gagal PDF: '+e.message,'err');});
+  }
+
+  function printSelected(){
+    var cbs=document.querySelectorAll('.item-cb:checked');
+    if(!cbs.length)return showToast('Pilih minimal 1 siswa!','err');
+    var list=[];for(var i=0;i<cbs.length;i++)list.push(filteredStudents[parseInt(cbs[i].getAttribute('data-idx'))]);
+    list=list.filter(Boolean);openPrintWindow(list,'Transkrip Terpilih');
+    showToast('Mencetak '+list.length+' transkrip...','ok');
+  }
+  function printAllVisible(){
+    if(!filteredStudents.length)return showToast('Tidak ada siswa!','err');
+    openPrintWindow(filteredStudents,'Transkrip Semua ('+filteredStudents.length+')');
+    showToast('Mencetak '+filteredStudents.length+' transkrip...','ok');
+  }
+
+  document.addEventListener('click',function(e){if(e.target.id==='modalOverlay')closeModal();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$id('modalOverlay').classList.contains('show'))closeModal();});
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){stopAutoRefresh();}
+    else if(allStudents.length>0){silentRefresh();startAutoRefresh();}
+  });
+</script>
+</body>
+</html>
